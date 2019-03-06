@@ -54,19 +54,49 @@ def make_new_student(first_name, last_name, github):
     print("Successfully added student: {} {}".format(first_name,last_name))
 
 
-def get_project_by_title(title):
+def get_project_by_title(title_placeholder):
     """Given a project title, print information about the project."""
-    pass
+    QUERY = """
+        SELECT title, description, max_grade 
+        FROM projects
+        WHERE title  = :title
+        """
+    db_cursor = db.session.execute(QUERY, {'title':title_placeholder})
+
+    row = db_cursor.fetchone()
+
+    print("Title: {}\nDescription: {}\nMax Grade: {}".format(row[0],row[1],row[2]))
 
 
-def get_grade_by_github_title(github, title):
+def get_grade_by_github_title(title_placeholder, github_placeholder):
     """Print grade student received for a project."""
-    pass
+    QUERY = """
+        SELECT student_github, project_title, grade
+        FROM grades
+        WHERE project_title = :title
+        AND student_github = :github
+        """
+
+    db_cursor = db.session.execute(QUERY, {'title': title_placeholder,
+                                            'github': github_placeholder})
+
+    row = db_cursor.fetchone()
+
+    print("Student Github: {}\nProject Title: {}\nGrade: {}".format(row[0],row[1],row[2]))
 
 
-def assign_grade(github, title, grade):
+def assign_grade(github_placeholder, title_placeholder, grade_placeholder):
     """Assign a student a grade on an assignment and print a confirmation."""
-    pass
+    QUERY = """
+        INSERT INTO grades (student_github, project_title, grade)
+            VALUES (:student_github, :project_title, :grade)
+    """
+    db.session.execute(QUERY, {'student_github' : github_placeholder,
+                                'project_title': title_placeholder,
+                                'grade': grade_placeholder})
+    db.session.commit()
+
+    print("Assigned grade: {} to {} for the {} project.".format(grade_placeholder,github_placeholder,title_placeholder))
 
 
 def handle_input():
@@ -91,6 +121,10 @@ def handle_input():
         elif command == "new_student":
             first_name, last_name, github = args  # unpack!
             make_new_student(first_name, last_name, github)
+
+        elif command == "assign_grade":
+            github, title, grade = args  # unpack!
+            assign_grade(github, title, grade)
 
         else:
             if command != "quit":
